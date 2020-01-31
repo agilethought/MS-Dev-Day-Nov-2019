@@ -200,11 +200,13 @@ Congratulations!  You have created an Azure ML Pipeline.  We will train the pipe
             ```  
             ![Run Train Models](./readme_images/run_train_models_script.png)
     1. Run the Release
-        - Verify that models are created
-            - `Azure Portal -> Machine Learning -> <Your ML Workspace> -> Models`  
+        - Verify that models are created (this may take a while!)
+            - `Azure Portal -> Machine Learning -> febdevday-AML-WS -> Pipelines -> training-pipeline -> Summary -> Last Run Result: Finished`
+            ![Pipeline Finished](./readme_images/pipeline_status_finished.png)
+            - `Azure Portal -> Machine Learning -> febdevday-AML-WS -> Models`  
             ![Trained Models](./readme_images/trained_models.png)
         - Verify that models exist in blob storage
-            - `Azure Portal -> Storage Accounts -> <Your Storage Account> -> Blob Service -> Containers -> <Your Container> -> modeldata`  
+            - `Azure Portal -> Storage Accounts -> febdevdayamlsa -> Blob Service -> Containers -> modeldata`  
             ![Trained Model Blobs](./readme_images/trained_models_pkls.png)
 
 Congratulations!  You've trained your models.  We will create an AKS Cluster in the next section.
