@@ -221,11 +221,6 @@ Congratulations!  You've trained your models.  We will create an AKS Cluster in 
             | ------------- | --------------- |
             | AKS_NAME | `atDevDayCluster` |
             | AKS_RG | `febdevday-AML-RG` |
-1. Add the Service Principal to the AKS Cluster **(TODO - I think this can be removed now!)**
-    1. `Azure Portal -> Kubernetes services -> atDevDayCluster -> Access Control (IAM) -> Add role assignment`
-        - Role: `Contributor`
-        - Assign access to: `Azure AD user, group, or service principle`
-        - Select: `<Your Service Principle name>`
 1. Create a new Azure DevOps Release to run the ML Scaler
     1. `Azure DevOps Project Sidebar -> Pipelines -> Releases -> Train ML Pipeline -> ... in top right -> Clone`
         - Name: `Run ML Scaler`
@@ -243,8 +238,6 @@ Congratulations!  You've trained your models.  We will create an AKS Cluster in 
             - The docker image definition used in the script is available in the `docker/container` folder in this repo.
 1. Save and run the `Run ML Scaler` release
     - This should take a while (5+ minutes)!
-
-
 1. Verify Scaling
     - Review release logs  
         ![Release Log](./readme_images/scaler_release_logs.png)
