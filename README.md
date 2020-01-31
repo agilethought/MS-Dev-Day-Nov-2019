@@ -10,27 +10,65 @@ We have included three Azure DevOps "challenges" over the course the workshop.  
 
 ## Steps
 
-### Azure and Azure DevOps Setup
+### Azure Account Setup
 
 > NOTE: This workshop is going to involve provisioning and configuring Azure resources such as ML Pipelines, Kubernetes Clusters, Azure Active Directory App Registrations, and Azure DevOps projects.  If you already have a corporate Azure account, there's a good chance that you do not have permission to take these actions.  If that's the case, we recommend that you sign up for a fresh Azure Free Account.
 
-1. Create a new Azure DevOps Free Account *(if necessary)*
+1. Create a new Azure Free Account *(if necessary)*
     - Navigate to https://azure.microsoft.com/en-us/free/
     - Select the "Start free" button
-1. Create a new Azure DevOps Organization *(if necessary)* ([docs](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops))
-    - Navigate to https://azure.microsoft.com/en-us/pricing/details/devops/azure-devops-services/
-    - Select the Basic Plan column's "Start free >" button
-1. Create a new Azure DevOps Project ([docs](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=browser))
-    - `Azure DevOps Organization Screen -> + New project (top right)`
-1. Clone the source repo into your project
-    - `Sidebar -> Repos -> Import -> https://github.com/agilethought/MS-Dev-Day-Nov-2019`  
-    ![Import Repo](./readme_images/import_repo.png)
-1. Create a new Service Principle in Azure Active Directory ([docs](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal))
-    - `Portal -> Azure Active Directory -> App registrations -> + New Registration`
-        - Name: `atmsdevdayapp`
-        - Supported account types: Accounts in this organizational directory only
-        - Redirect URI: leave empty
-    - "Register" and record the following:
+
+### Kubernetes Cluster Provisioning
+
+Provisioning the Kubernetes cluster can take a few minutes.  Let's crack open Azure Cloud Shell and get that started in the background.
+
+1. Navigate to the Azure Cloud Shell at https://shell.azure.com
+1. Use the following script to create an AKS Cluster ([docs](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough))
+    ```
+    az login # Not required in Azure Cloud Shell
+
+    # If you've already run this script, you'll need to remove cached service principle info in Azure
+    # rm .azure/aksServicePrincipal.json
+
+    az group create --name febdevday-AML-RG --location eastus
+
+    az provider register --namespace Microsoft.Network
+    az provider register --namespace Microsoft.Compute
+    az provider register --namespace Microsoft.Storage
+
+    az ad sp create-for-rbac --name atmsdevdayapp
+
+    # `aks create` will take a while!
+    # substitute values from `create-for-rbac` above!
+    az aks create --resource-group febdevday-AML-RG \
+        --name atDevDayCluster \
+        --service-principal <appId from create-for-rbac> \
+        --client-secret <password from create-for-rbac> \
+        --node-count 1 \
+        --vm-set-type VirtualMachineScaleSets \
+        --enable-cluster-autoscaler \
+        --generate-ssh-keys \
+        --node-vm-size Standard_D2_v3 \
+        --min-count 1 \
+        --max-count 2
+
+    # disable auto-scaling so we can proactively scale!
+    az aks update --resource-group febdevday-AML-RG --name atDevDayCluster --disable-cluster-autoscaler
+    ```  
+    ![Azure Cloud Shell AKS Creation](./readme_images/azure_cloud_shell_aks.png)
+    - If you get Service Principle errors, review the following article: [Service principals with Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/kubernetes-service-principal)
+1. Verify that AKS Cluster has been created correctly
+    1. `Azure Portal -> Kubernetes services -> atDevDayCluster -> Settings -> Node pools`
+        - `nodepool1` should be present and `Node count` should be `1`  
+        ![AKS Cluster Node Pool](./readme_images/aks_cluster_node_pool.png)
+
+Congratulations! You have created an AKS Cluster.  We will use the ML models to proactively scale the cluster later in the workshop.
+
+### Azure and Azure DevOps Setup
+
+1. Record Azure Service Principle Information and Create a Client Secret
+    - `Portal -> Azure Active Directory -> App registrations -> atmsdevdayapp`
+    - Record the following:
         - Application (client) ID
         - Directory (tenant) ID
     - Create a Client Secret
@@ -39,6 +77,14 @@ We have included three Azure DevOps "challenges" over the course the workshop.  
             - Expires: Never
         - Record Client Secret value  
         ![Client Secret Screen](./readme_images/client_secret.png)
+1. Create a new Azure DevOps Organization *(if necessary)* ([docs](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops))
+    - Navigate to https://azure.microsoft.com/en-us/pricing/details/devops/azure-devops-services/
+    - Select the Basic Plan column's "Start free >" button
+1. Create a new Azure DevOps Project ([docs](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=browser))
+    - `Azure DevOps Organization Screen -> + New project (top right)`
+1. Clone the source repo into your project
+    - `Sidebar -> Repos -> Import -> https://github.com/agilethought/MS-Dev-Day-Nov-2019`  
+    ![Import Repo](./readme_images/import_repo.png)
 1. Capture Configuration Data in an Azure DevOps Variable Group
     - `Azure DevOps Project -> Sidebar -> Pipelines -> Library -> Variable Groups -> "+ Variable group`
         - Variable group name: `devopsforai-aml-vg`
@@ -47,7 +93,7 @@ We have included three Azure DevOps "challenges" over the course the workshop.  
             | Variable Name | Suggested Value |
             | ------------- | --------------- |
             | AML_COMPUTE_CLUSTER_NAME | `train-cluster` |
-            | BASE_NAME | `<your-initials>devday` |
+            | BASE_NAME | `febdevday` |
             | EXPERIMENT_NAME | `mlopspython` |
             | LOCATION | `eastus` |
             | MODEL_NAME | `sklearn_regression_model.pkl` |
@@ -84,7 +130,7 @@ Congratulations!  You have configured the large majority of the Azure resources 
 
 ## Create the ML Pipeline
 
-1. Add your Service Principal as a Contributor on the ML Workspace ([docs](https://github.com/Azure/MachineLearningNotebooks/blob/master/how-to-use-azureml/manage-azureml-service/authentication-in-azureml/authentication-in-azureml.ipynb))
+1. Add your Service Principal as a Contributor on the ML Workspace ([docs](https://github.com/Azure/MachineLearningNotebooks/blob/master/how-to-use-azureml/manage-azureml-service/authentication-in-azureml/authentication-in-azureml.ipynb)) **(TODO - I think this can be removed now!)**
     - `Azure Portal -> Machine Learning -> <Your ML Workspace> -> Access control (IAM) -> Add Role Assignment`
         - Role: `Contributor`
         - Assign access to: `Azure AD user, group, or service principle`
@@ -174,50 +220,6 @@ Congratulations!  You have created an Azure ML Pipeline.  We will train the pipe
 
 Congratulations!  You've trained your models.  We will create an AKS Cluster in the next section.
 
-## Create the AKS Cluster
-
-1. Navigate to the Azure Cloud Shell at https://shell.azure.com
-1. Use the following script to create an AKS Cluster ([docs](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough))
-    ```
-    az login # Not required in Azure Cloud Shell
-
-    # If you've already run this script, you'll need to remove cached service principle info in Azure
-    # rm .azure/aksServicePrincipal.json
-
-    az group create --name atDevDayWorkshopRG --location eastus
-
-    az provider register --namespace Microsoft.Network
-    az provider register --namespace Microsoft.Compute
-    az provider register --namespace Microsoft.Storage
-
-    az ad sp create-for-rbac --skip-assignment
-
-    # `aks create` will take a while!
-    # substitute values from `create-for-rbac` above!
-    az aks create --resource-group atDevDayWorkshopRG \
-        --name atDevDayCluster \
-        --service-principal <appId from create-for-rbac> \
-        --client-secret <password from create-for-rbac> \
-        --node-count 1 \
-        --vm-set-type VirtualMachineScaleSets \
-        --enable-cluster-autoscaler \
-        --generate-ssh-keys \
-        --node-vm-size Standard_D2_v3 \
-        --min-count 1 \
-        --max-count 2
-
-    # disable auto-scaling so we can proactively scale!
-    az aks update --resource-group atDevDayWorkshopRG --name atDevDayCluster --disable-cluster-autoscaler
-    ```  
-    ![Azure Cloud Shell AKS Creation](./readme_images/azure_cloud_shell_aks.png)
-    - If you get Service Principle errors, review the following article: [Service principals with Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/kubernetes-service-principal)
-1. Verify that AKS Cluster has been created correctly
-    1. `Azure Portal -> Kubernetes services -> atDevDayCluster -> Settings -> Node pools`
-        - `nodepool1` should be present and `Node count` should be `1`  
-        ![AKS Cluster Node Pool](./readme_images/aks_cluster_node_pool.png)
-
-Congratulations! You have create an AKS Cluster.  We will use the ML models to proactively scale the cluster in the next section.
-
 ## Proactively Scale the AKS Cluster using Azure ML
 
 1. Capture AKS Variable Group Entries
@@ -227,8 +229,8 @@ Congratulations! You have create an AKS Cluster.  We will use the ML models to p
             | Variable Name | Suggested Value |
             | ------------- | --------------- |
             | AKS_NAME | `atDevDayCluster` |
-            | AKS_RG | `atDevDayWorkshopRG` |
-1. Add the Service Principal to the AKS Cluster
+            | AKS_RG | `febdevday-AML-RG` |
+1. Add the Service Principal to the AKS Cluster **(TODO - I think this can be removed now!)**
     1. `Azure Portal -> Kubernetes services -> atDevDayCluster -> Access Control (IAM) -> Add role assignment`
         - Role: `Contributor`
         - Assign access to: `Azure AD user, group, or service principle`
