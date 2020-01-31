@@ -23,9 +23,9 @@ We have included three Azure DevOps "challenges" over the course the workshop.  
 Provisioning the Kubernetes cluster can take a few minutes.  Let's crack open Azure Cloud Shell and get that started in the background.
 
 1. Navigate to the Azure Cloud Shell at https://shell.azure.com
-1. Use the following script to create an AKS Cluster ([docs](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough))
+1. Use the following script to create an Azure Resource Group, Service Principal, and AKS Cluster ([docs](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough))
     ```
-    az login # Not required in Azure Cloud Shell
+    # az login # Not required in Azure Cloud Shell
 
     # If you've already run this script, you'll need to remove cached service principle info in Azure
     # rm .azure/aksServicePrincipal.json
