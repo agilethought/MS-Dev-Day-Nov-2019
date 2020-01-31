@@ -130,43 +130,32 @@ Congratulations!  You have configured the large majority of the Azure resources 
 
 ## Create the ML Pipeline
 
-1. Add your Service Principal as a Contributor on the ML Workspace ([docs](https://github.com/Azure/MachineLearningNotebooks/blob/master/how-to-use-azureml/manage-azureml-service/authentication-in-azureml/authentication-in-azureml.ipynb)) **(TODO - I think this can be removed now!)**
-    - `Azure Portal -> Machine Learning -> <Your ML Workspace> -> Access control (IAM) -> Add Role Assignment`
-        - Role: `Contributor`
-        - Assign access to: `Azure AD user, group, or service principle`
-        - Select: `<Your Service Principle name>`  
-    ![Add SPN to ML Workspace](./readme_images/add_spn_to_ml_workspace.png)
 1. Create a Blob Container and Load Log Data
-    1. `Azure Portal -> Storage Accounts -> <Your Storage Account> -> Blob Service -> Containers > + Container`
+    1. `Azure Portal -> Storage Accounts -> febdevdayamsla -> Blob Service -> Containers > + Container`
         - Name: `modeldata`
         - Public access level: `Private (no anonymous access)`
     1. Select the newly created `modeldata` container
         - Download [`log_data.pkl`](https://github.com/agilethought/MS-Dev-Day-Nov-2019/raw/master/data/log_data.pkl)
         - Upload (top left)
             - File: `log_data.pkl` that you just downloaded
-1. Add Service Principal to Storage Account
-    - `Azure Portal -> Storage Accounts -> <Your Storage Account> -> Access control (IAM) -> Add Role Assignment`
-        - Role: `Contributor`
-        - Assign access to: `Azure AD user, group, or service principle`
-        - Select: `<Your Service Principle name>`
 1. Capture Blob Storage Variable Group Entries
     - `Azure DevOps Project -> Sidebar -> Pipelines -> Library -> Variable Groups -> devopsforai-aml-vg`
         - Add the following variables:
 
             | Variable Name | Suggested Value |
             | ------------- | --------------- |
-            | STORAGE_ACCT_NAME | `<Blob Storage Container Name>` |
+            | STORAGE_ACCT_NAME | `febdevdayamlsa` |
             | STORAGE_ACCT_KEY | `<Azure Portal -> Storage Accounts -> <Your Storage Account> -> Settings -> Access Keys>` |
             | STORAGE_BLOB_NAME | `modeldata` |
-1. Create an Azure DevOps Build to Create the ML Pipeline
-    1. `Azure DevOps Project Sidebar -> Pipelines -> Builds -> New pipeline`
+1. Create an Azure DevOps Pipeline to Create the ML Pipeline
+    1. `Azure DevOps Project Sidebar -> Pipelines -> Pipelines -> New pipeline`
         - Where is your code?: `Azure Repos Git`
         - Select your imported repo
         - Configure your pipeline: `Existing Azure Pipelines YAML file`
             - Branch: `master`
             - Path: `/build_pipeline_scripts/model-build.yml`
         - Suggested Name: `Build ML Pipeline`
-    1. Run the Build
+    1. Run the Pipeline
         - `Newly Created Build Pipeline -> Run` (This will take a few minutes!)
         - Verify that ML Pipeline was created
             - `Azure Portal -> Machine Learning -> <Your ML Workspace> -> Pipelines`
