@@ -73,8 +73,8 @@ Congratulations! You have created an AKS Cluster.  We will use the ML models to 
         - Directory (tenant) ID
     - Create a Client Secret
         - `Portal -> AAD -> App Registrations -> <This Registration> -> Certificates & secrets -> New client secret`
-            - Description: AT Dev Day Client Secret
-            - Expires: Never
+            - Description: `AT Dev Day Client Secret`
+            - Expires: `Never`
         - Record Client Secret value  
         ![Client Secret Screen](./readme_images/client_secret.png)
 1. Create a new Azure DevOps Organization *(if necessary)* ([docs](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops))
@@ -105,14 +105,14 @@ Congratulations! You have created an AKS Cluster.  We will use the ML models to 
             | TRAIN_SCRIPT_PATH | `train.py` |
             | TRAINING_PIPELINE_NAME | `training-pipeline` |
 1. Create an Azure Resource Manager Service Connection ([docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml#create-a-service-connection))
-    - `Azure DevOps Project Sidebar -> Project settings -> Pipelines -> Service connections -> + New service connection -> Azure Resource Manager`
-        - Connection Name: `AzureResourceConnection`
-        - Scope Level: `Subscription`
+    - `Azure DevOps Project Sidebar -> Project settings -> Pipelines -> Service connections -> + New service connection -> Azure Resource Manager -> Service principal (automatic)`
         - Subscription: `<Your Azure Subscription>`
+        - Scope Level: `Subscription`
         - Resource Group: Leave Blank  
+        - Service connection name: `AzureResourceConnection`
     ![Azure Resource Manager Service Connection](./readme_images/azure_resource_manager_service_connection.png)
 1. Create a Build to Provision Azure Resources
-    1. `Azure DevOps Project Sidebar -> Pipelines -> Builds -> New pipeline`
+    1. `Azure DevOps Project Sidebar -> Pipelines -> Create Pipeline`
         - Where is your code?: `Azure Repos Git`
         - Select your imported repo
         - Configure your pipeline: `Existing Azure Pipelines YAML file`
@@ -122,8 +122,8 @@ Congratulations! You have created an AKS Cluster.  We will use the ML models to 
     1. Run the Build
         - `Newly Created Build Pipeline -> Run` (This will take a few minutes!)
     1. Verify Azure Resource Creation
-        - `Azure Portal -> Resource groups -> <Your Newly Created Resource Group>`
-        - Verify that 5 resources have been created:  
+        - `Azure Portal -> Resource groups -> febdevday-AML-RG`
+        - Verify that 6 resources have been created:  
         ![Initial Resource Group Members](./readme_images/initial_resource_group_members.png)
 
 Congratulations!  You have configured the large majority of the Azure resources necessary for this workshop.
