@@ -27,7 +27,7 @@ Provisioning the Kubernetes cluster can take a few minutes.  Let's crack open Az
     ```
     # az login # Not required in Azure Cloud Shell
 
-    # If you've already run this script, you'll need to remove cached service principle info in Azure
+    # If you've already run this script, you'll need to remove cached service principal info in Azure
     # rm .azure/aksServicePrincipal.json
 
     az group create --name febdevday-AML-RG --location eastus
@@ -56,7 +56,8 @@ Provisioning the Kubernetes cluster can take a few minutes.  Let's crack open Az
     az aks update --resource-group febdevday-AML-RG --name atDevDayCluster --disable-cluster-autoscaler
     ```  
     ![Azure Cloud Shell AKS Creation](./readme_images/azure_cloud_shell_aks.png)
-    - If you get Service Principle errors, review the following article: [Service principals with Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/kubernetes-service-principal)
+    - If you get Service Principal errors, review the following article: [Service principals with Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/kubernetes-service-principal)
+    - This script will take a few minutes to provision the cluster
 1. Verify that AKS Cluster has been created correctly
     1. `Azure Portal -> Kubernetes services -> atDevDayCluster -> Settings -> Node pools`
         - `nodepool1` should be present and `Node count` should be `1`  
@@ -66,7 +67,7 @@ Congratulations! You have created an AKS Cluster.  We will use the ML models to 
 
 ### Azure and Azure DevOps Setup
 
-1. Record Azure Service Principle Information and Create a Client Secret
+1. Record Azure Service Principal Information and Create a Client Secret
     - `Portal -> Azure Active Directory -> App registrations -> atmsdevdayapp`
     - Record the following:
         - Application (client) ID
